@@ -133,6 +133,8 @@ class CloudEdgeClient:
         session_cache_file: str = ".cloudedge_session_cache",
         enable_network_ping: bool = True,
         ping_timeout: float = 2.0,
+        self.BASE_URL = "https://apis-eu-frankfurt.cloudedge360.com",
+        self.OPENAPI_BASE_URL = "https://openapi-eu-frankfurt.cloudedge360.com",
     ):
         if not validate_email(username):
             raise ValidationError(
