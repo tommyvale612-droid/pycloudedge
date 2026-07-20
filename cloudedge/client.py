@@ -37,8 +37,8 @@ def __init__(
         self.phone_code = phone_code if phone_code.startswith('+') else f'+{phone_code}'
         
         # Server ieGeek / CloudEdge Francoforte (Europa)
-        self.BASE_URL: str = "https://apis-eu-frankfurt.cloudedge360.com"
-        self.OPENAPI_BASE_URL: str = "https://openapi-eu-frankfurt.cloudedge360.com"
+        self.BASE_URL = "https://apis-eu-frankfurt.cloudedge360.com"
+        self.OPENAPI_BASE_URL = "https://openapi-eu-frankfurt.cloudedge360.com"
         
         self.logger = get_logger("client")
         if debug:
