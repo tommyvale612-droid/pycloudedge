@@ -50,4 +50,16 @@ __all__ = [
     'decrypt_jpgx3',
     'decrypt_jpgx3_from_url',
     'verify_licence_for_url',
+    
+    """CloudEdge API Python Wrapper."""
+
+from .client import CloudEdgeClient
+from .exceptions import CloudEdgeError, AuthenticationError, DeviceNotFoundError
+
+__all__ = [
+    "CloudEdgeClient",
+    "CloudEdgeError",
+    "AuthenticationError",
+    "DeviceNotFoundError",
+]
 ]
