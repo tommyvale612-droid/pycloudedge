@@ -176,11 +176,24 @@ class CloudEdgeClient:
             devices.append({
                 "deviceID": dev_id,
                 "id": dev_id,
+                "serial_number": str(dev_id),
                 "name": f"Camera {dev_id}",
                 "deviceName": f"Camera {dev_id}",
                 "online": True,
             })
         return devices
+
+    def get_device_info(self, device_id) -> Dict[str, Any]:
+        return {
+            "deviceID": device_id,
+            "id": device_id,
+            "serial_number": str(device_id),
+            "name": f"Camera {device_id}",
+            "deviceName": f"Camera {device_id}",
+            "online": True,
+            "battery": None,
+            "signal": None,
+        }
 
     def _signed_get(self, path: str, extra_params: dict) -> dict:
         timestamp = int(time.time() * 1000)
