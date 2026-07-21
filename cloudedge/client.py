@@ -161,5 +161,44 @@ class CloudEdgeClient:
         except Exception as e:
             raise AuthenticationError(f"Login request failed: {e}")
 
+    def get_mqtt_config(self) -> Dict[str, Any]:
+        """Stub: MQTT non ancora implementato, evita il crash del setup."""
+        return {}
+
     def get_all_devices(self) -> List[Dict[str, Any]]:
-        return []
+        if not self.session_data or not self.session_data.get("userToken"):
+            raise AuthenticationError("Not authenticated - call authenticate() first")
+
+        timestamp = int(time.time() * 1000)
+        params = {
+            "appVer": "6.1.1",
+            "appVerCode": "1035",
+            "countryCode": self.country_code,
+            "lngType": "en",
+            "phoneCode": self.phone_code.lstrip("+"),
+            "phoneType": "a",
+            "signatureMethod": "HMAC-SHA1",
+            "signatureNonce": str(timestamp),
+            "signatureVersion": "1.0",
+            "sourceApp": "81",
+            "t": str(timestamp),
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S.000Z", time.gmtime(timestamp / 1000)),
+            "userID": self.session_data["userID"],
+        }
+        msg = "&".join(f"{k}={params[k]}" for k in sorted(params))
+        signature = base64.b64encode(
+            hmac.new(self.session_data["userToken"].encode(), msg.encode(), hashlib.sha1).digest()
+        ).decode()
+        params["signature"] = signature
+
+        try:
+            response = self._session.get(
+                f"{self.BASE_URL}/v1/app/home/list", params=params, timeout=DEFAULT_TIMEOUT
+            )
+            response.raise_for_status()
+            res_json = response.json()
+            if res_json.get("resultCode") == "1001":
+                return res_json.get("result", {}).get("deviceList", [])
+            raise CloudEdgeError(f"get_all_devices failed: {res_json.get('resultMsg')}")
+        except requests.RequestException as e:
+            raise NetworkError(f"Request failed: {e}")
