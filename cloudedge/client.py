@@ -166,37 +166,31 @@ class CloudEdgeClient:
         return {}
 
     def get_all_devices(self) -> List[Dict[str, Any]]:
-    if not self.session_data or not self.session_data.get("userToken"):
-        raise AuthenticationError("Not authenticated - call authenticate() first")
+        if not self.session_data or not self.session_data.get("userToken"):
+            raise AuthenticationError("Not authenticated - call authenticate() first")
 
-    homes = self._signed_get("/v1/app/home/list", {})
-    home_list = homes.get("homes", [])
-    if not home_list:
-        return []
-    home_id = home_list[0]["homeID"]
+        devices = self._signed_get("/v1/app/device/list", {"listAllDevice": "1"})
+        self.logger.warning(f"DEVICE LIST RESPONSE: {devices}")
+        return devices.get("deviceList", []) or devices.get("devices", [])
 
-    devices = self._signed_get("/v1/app/device/list", {"homeID": home_id})
-    self.logger.warning(f"DEVICE LIST RESPONSE: {devices}")
-    return devices.get("deviceList", []) or devices.get("devices", [])
-
-def _signed_get(self, path: str, extra_params: dict) -> dict:
-    timestamp = int(time.time() * 1000)
-    params = {
-        "appVer": "6.1.1", "appVerCode": "1035", "countryCode": self.country_code,
-        "lngType": "en", "phoneCode": self.phone_code.lstrip("+"), "phoneType": "a",
-        "signatureMethod": "HMAC-SHA1", "signatureNonce": str(timestamp),
-        "signatureVersion": "1.0", "sourceApp": "81", "t": str(timestamp),
-        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S.000Z", time.gmtime(timestamp / 1000)),
-        "userID": self.session_data["userID"], **extra_params,
-    }
-    msg = "&".join(f"{k}={params[k]}" for k in sorted(params))
-    params["signature"] = base64.b64encode(
-        hmac.new(self.session_data["userToken"].encode(), msg.encode(), hashlib.sha1).digest()
-    ).decode()
-    response = self._session.get(f"{self.BASE_URL}{path}", params=params, timeout=DEFAULT_TIMEOUT)
-    response.raise_for_status()
-    res_json = response.json()
-    self.logger.warning(f"RAW RESPONSE {path}: {response.text}")
-    if res_json.get("resultCode") == "1001":
-        return res_json.get("result", {})
-    raise CloudEdgeError(f"{path} failed: {res_json.get('resultMsg')}")
+    def _signed_get(self, path: str, extra_params: dict) -> dict:
+        timestamp = int(time.time() * 1000)
+        params = {
+            "appVer": "6.1.1", "appVerCode": "1035", "countryCode": self.country_code,
+            "lngType": "en", "phoneCode": self.phone_code.lstrip("+"), "phoneType": "a",
+            "signatureMethod": "HMAC-SHA1", "signatureNonce": str(timestamp),
+            "signatureVersion": "1.0", "sourceApp": "81", "t": str(timestamp),
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S.000Z", time.gmtime(timestamp / 1000)),
+            "userID": self.session_data["userID"], **extra_params,
+        }
+        msg = "&".join(f"{k}={params[k]}" for k in sorted(params))
+        params["signature"] = base64.b64encode(
+            hmac.new(self.session_data["userToken"].encode(), msg.encode(), hashlib.sha1).digest()
+        ).decode()
+        response = self._session.get(f"{self.BASE_URL}{path}", params=params, timeout=DEFAULT_TIMEOUT)
+        response.raise_for_status()
+        res_json = response.json()
+        self.logger.warning(f"RAW RESPONSE {path}: {response.text}")
+        if res_json.get("resultCode") == "1001":
+            return res_json.get("result", {})
+        raise CloudEdgeError(f"{path} failed: {res_json.get('resultMsg')}")
