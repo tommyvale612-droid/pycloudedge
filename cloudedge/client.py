@@ -166,18 +166,23 @@ class CloudEdgeClient:
         return {}
 
     def get_all_devices(self) -> List[Dict[str, Any]]:
-        if not self.session_data or not self.session_data.get("userToken"):
-            raise AuthenticationError("Not authenticated - call authenticate() first")
+    if not self.session_data or not self.session_data.get("userToken"):
+        raise AuthenticationError("Not authenticated - call authenticate() first")
 
-        result = self._signed_get("/v3/app/event/new/get", {"listAllDevice": "1"})
-        self.logger.warning(f"FULL HOME RESPONSE: {result}")
+    events = self._signed_get("/v3/app/event/new/get", {"listAllDevice": "1"})
+    device_ids = [d["deviceID"] for d in events.get("device", [])]
 
-        devices = []
-        for home in result.get("homes", []):
-            devices.extend(home.get("devices", []) or home.get("deviceList", []))
-            for room in home.get("rooms", []):
-                devices.extend(room.get("devices", []) or room.get("deviceList", []))
-        return devices
+    devices = []
+    for dev_id in device_ids:
+        try:
+            info = self._signed_get("/v1/app/ai/alarm/projects/get", {"deviceID": str(dev_id)})
+            self.logger.warning(f"DEVICE {dev_id} INFO: {info}")
+            info["deviceID"] = dev_id
+            devices.append(info)
+        except Exception as e:
+            self.logger.warning(f"Failed to get info for {dev_id}: {e}")
+            devices.append({"deviceID": dev_id, "deviceName": f"Camera {dev_id}"})
+    return devices
 
     def _signed_get(self, path: str, extra_params: dict) -> dict:
         timestamp = int(time.time() * 1000)
