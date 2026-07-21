@@ -166,18 +166,18 @@ class CloudEdgeClient:
         return {}
 
     def get_all_devices(self) -> List[Dict[str, Any]]:
-    if not self.session_data or not self.session_data.get("userToken"):
-        raise AuthenticationError("Not authenticated - call authenticate() first")
+        if not self.session_data or not self.session_data.get("userToken"):
+            raise AuthenticationError("Not authenticated - call authenticate() first")
 
-    result = self._signed_get("/v1/app/home/list", {"listAllDevice": "1"})
-    self.logger.warning(f"FULL HOME RESPONSE: {result}")
+        result = self._signed_get("/v1/app/home/list", {"listAllDevice": "1"})
+        self.logger.warning(f"FULL HOME RESPONSE: {result}")
 
-    devices = []
-    for home in result.get("homes", []):
-        devices.extend(home.get("devices", []) or home.get("deviceList", []))
-        for room in home.get("rooms", []):
-            devices.extend(room.get("devices", []) or room.get("deviceList", []))
-    return devices
+        devices = []
+        for home in result.get("homes", []):
+            devices.extend(home.get("devices", []) or home.get("deviceList", []))
+            for room in home.get("rooms", []):
+                devices.extend(room.get("devices", []) or room.get("deviceList", []))
+        return devices
 
     def _signed_get(self, path: str, extra_params: dict) -> dict:
         timestamp = int(time.time() * 1000)
