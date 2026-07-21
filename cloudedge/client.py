@@ -173,14 +173,13 @@ class CloudEdgeClient:
 
         devices = []
         for dev_id in device_ids:
-            try:
-                info = self._signed_get("/v1/app/ai/alarm/projects/get", {"deviceID": str(dev_id)})
-                self.logger.warning(f"DEVICE {dev_id} INFO: {info}")
-                info["deviceID"] = dev_id
-                devices.append(info)
-            except Exception as e:
-                self.logger.warning(f"Failed to get info for {dev_id}: {e}")
-                devices.append({"deviceID": dev_id, "deviceName": f"Camera {dev_id}"})
+            devices.append({
+                "deviceID": dev_id,
+                "id": dev_id,
+                "name": f"Camera {dev_id}",
+                "deviceName": f"Camera {dev_id}",
+                "online": True,
+            })
         return devices
 
     def _signed_get(self, path: str, extra_params: dict) -> dict:
