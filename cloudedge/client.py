@@ -196,6 +196,7 @@ class CloudEdgeClient:
                 f"{self.BASE_URL}/v1/app/home/list", params=params, timeout=DEFAULT_TIMEOUT
             )
             response.raise_for_status()
+            self.logger.warning(f"RAW RESPONSE: {response.text}")
             res_json = response.json()
             if res_json.get("resultCode") == "1001":
                 return res_json.get("result", {}).get("deviceList", [])
