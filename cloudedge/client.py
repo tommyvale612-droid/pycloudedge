@@ -169,7 +169,7 @@ class CloudEdgeClient:
         if not self.session_data or not self.session_data.get("userToken"):
             raise AuthenticationError("Not authenticated - call authenticate() first")
 
-        result = self._signed_get("/v1/app/user/device/list", {})
+        result = self._signed_get("/v3/app/device/list", {})
         self.logger.warning(f"FULL HOME RESPONSE: {result}")
 
         devices = []
